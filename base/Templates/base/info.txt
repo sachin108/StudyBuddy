@@ -1,0 +1,2 @@
+main templates are inside root folder
+and app templates are inside app folder

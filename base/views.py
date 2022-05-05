@@ -1,9 +1,11 @@
 from multiprocessing import context
+from django.contrib import messages
 from django.shortcuts import redirect, render
-from django.http import HttpResponse
-from .models import Room
+from django.db.models import Q
+from .models import Room, Topic
 from .forms import RoomForm
-
+from django.contrib.auth.models import User
+from django.contrib.auth import login, logout, authenticate
 '''
 rooms=[
     {'id':1, 'name':'C++'},
@@ -13,9 +15,32 @@ rooms=[
 ]
 '''
 # Create your views here.
+def loginPage(request):
+    if request.method=='POST':
+        username=request.POST.get('username')
+        password=request.POST.get('password')
+
+        try:
+            user=User.objects.get(username=username)
+        except:
+            messages.error(request, "User doesn't exist!")
+
+        user=authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('Home')
+        else:
+            messages.error(request, "username or password is incorrect!")
+
+    context={}
+    return render(request, 'base/login_register.html', context)
+
 def Home(request):
-    rooms=Room.objects.all()
-    context={'rooms':rooms}
+    q=request.GET.get('q') 
+    rooms=Room.objects.all( )
+    room_count=rooms.count()
+    topics=Topic.objects.all()
+    context={'rooms':rooms, 'topics':topics, 'room_count':room_count}
     return render(request, 'base/home.html', context)
 
 def room(request, pk):
